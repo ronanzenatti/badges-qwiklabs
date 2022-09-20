@@ -10,14 +10,14 @@ import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const fileName = 'Paulo Souza_GCCF  Formulário de Inscrição  (Responses).xlsx';
-const planName = 'Form Responses 1';
+const fileName = 'GCCFCPS.xlsx';
+const planName = 'Sheet1';
 const cels = {
-    firstName: 4,
-    lastName: 5,
-    email: 2,
-    cofirmEmail: 3,
-    qwiklabsLink: 8,
+    firstName: 3,
+    lastName: 4,
+    email: 1,
+    cofirmEmail: 2,
+    qwiklabsLink: 7,
     accepted: 9
 };
 
@@ -59,16 +59,19 @@ const table = workSheetsFromFile.filter(table => {
 console.log("Coletando os estudantes");
 table[0].data.forEach(item => {
 
-    if (cont > 0 && item[cels.accepted] == 'Estou de acordo') {
+    // if (cont > 0 && item[cels.accepted] == 'Estou de acordo') {
+    if (cont > 0) {
         const student = {
-            nome: `${item[cels.firstName]} ${item[cels.lastName]}`,
+            name: `${item[cels.firstName]} ${item[cels.lastName]}`,
             email: item[cels.email],
             confereEmail: (item[cels.email] == item[cels.cofirmEmail]),
             link: item[cels.qwiklabsLink]
         }
+        //console.log(student.name, item[cels.qwiklabsLink])
         studentsForm.push(student);
-    } else {
-        negatives++;
+        /*   } else {
+              negatives++;
+          }*/
     }
     cont++;
 });
@@ -98,6 +101,7 @@ async function buscarBadges() {
             else
                 studentsReproved.push(student);
         }
+        studentsForm[cont] = student;
         cont++;
         buscarBadges();
 
@@ -108,8 +112,9 @@ async function buscarBadges() {
 
 async function perfilRead(student) {
     let status = false;
-
+    console.log(student.link)
     const link = linkify.find(student.link, 'url');
+    console.log(link)
 
     student.link = (link[0].isLink) ? link[0].href : null;
 
@@ -242,13 +247,16 @@ function toTable(json, name) {
 
         badgesValids.forEach(badge => {
             item[badge.name] = '';
-            item.badges.forEach(earned => {
-                if (earned.name.indexOf(badge.name) > -1) {
-                    item[badge.name] = earned.earned;
-                    item.badgesValids++;
-                }
-            })
+            if (item.badges) {
+                item.badges.forEach(earned => {
+                    if (earned.name.indexOf(badge.name) > -1) {
+                        item[badge.name] = earned.earned;
+                        item.badgesValids++;
+                    }
+                })
+            }
         });
+        let temp = item.badges;
         delete item.badges;
 
         if (i == 0) {
@@ -256,6 +264,7 @@ function toTable(json, name) {
             i++;
         }
         dataTemp.push(Object.values(item));
+        item.badges = temp;
     });
 
     if (name == 'approved') {
